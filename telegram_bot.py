@@ -433,7 +433,7 @@ class TelegramBot(TelegramBotBase):
         if query.data == "orders" or query.data == "pairs" or query.data == "allactive":
             self.marginresponse(update, context)
 
-        elif query.data in ("binance", "coinbasepro", "kucoin"):
+        elif query.data in ("binance", "coinbasepro", "kucoin", "scanner", "logging"):
             self.showconfigresponse(update, context)
 
         elif "pause_" in query.data:
@@ -866,7 +866,10 @@ class TelegramBot(TelegramBotBase):
 
         query = update.callback_query
 
-        pbot = self.config[query.data]["config"]
+        pbot = self.config[query.data]
+        pbot.delete('api_key')
+        pbot.delete('api_secret')
+        pbot.delete('api_passphrase')
 
         query.edit_message_text(query.data + "\n" + json.dumps(pbot, indent=4))
 
