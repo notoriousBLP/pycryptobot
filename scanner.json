@@ -4,17 +4,21 @@
 			"USD"
 		],
 		"tv_screener_ratings": [
-			"STRONG_BUY",
-			"BUY"
+			"STRONG_BUY"
 		],
 		"volatility_treshold": 9,
-		"volume_threshold": 20000,
+		"volume_threshold": 10000,
 		"adx_threshold": 25,
-		"granularity": 900
+		"granularity": 3600
 	},
 	"kucoin": {
 		"quote_currency": [
 			"USDT"
-		]
+		],
+		"volume_threshold": 10000,
+		"tv_screener_ratings": [
+			"STRONG_BUY"
+		],
+		"adx_threshold": 25
 	}
 }

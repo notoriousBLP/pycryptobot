@@ -118,7 +118,7 @@ def process_screener_data(app, markets, quote_currency):
     formatted_ta = []
     for ta in screener_analysis:
         try:
-            recommend = ta.summary.get('RECOMMENDATION')
+            recommend = Decimal(ta.indicators.get('Recommend.All'))
             volatility = Decimal(volatility_calculator(ta.indicators['BB.upper'], ta.indicators['BB.lower']))
             adx = abs(Decimal(ta.indicators['ADX']))
             adx_posi_di = Decimal(ta.indicators['ADX+DI'])
@@ -128,15 +128,22 @@ def process_screener_data(app, markets, quote_currency):
             macd_signal = Decimal(ta.indicators['MACD.signal'])
             bollinger_upper = Decimal(ta.indicators['BB.upper'])
             bollinger_lower = Decimal(ta.indicators['BB.lower'])
+            rsi = Decimal(ta.indicators.get('RSI', 0))
+            stoch_d = Decimal(ta.indicators.get('Stoch.D', 0))
+            stoch_k = Decimal(ta.indicators.get('Stoch.K', 0))
+            williams_r = Decimal(ta.indicators.get('W.R', 0))
             score = 0
             # print('symbol\tvolume\tvvolatilith\tadx\tadx_posi_di\tadx_neg_di\tmacd\tmacd_signal\tbollinger_upper\tbollinger_lower\trecommend')
             # print(ta.symbol, volume, volatility, adx, adx_posi_di, adx_neg_di, macd, macd_signal, bollinger_upper, bollinger_lower, recommend)
-            if recommend in app.tv_screener_ratings:
-                # print(ta.summary.get('RECOMMENDATION'))
+            if recommend <= 0.5 and recommend > 0.1:
+                score += 2.5
+                rating = 'BUY'
+            if recommend > 0.5:
                 score += 5
-            if (adx >= app.adx_threshold or adx_posi_di > adx) and (adx_posi_di > adx_neg_di):
+                rating = 'STRONG_BUY'
+            if ((adx >= app.adx_threshold) or (adx_posi_di > adx_neg_di)) and (adx_posi_di > adx):
                 # print(f"ADX({adx}) >= {app.adx_threshold}")
-                score += 2
+                score += 1 
             if volume >= app.volume_threshold:
                 # print(f"Volume({volume}) >= {app.volume_threshold}")
                 score += 1
@@ -145,6 +152,14 @@ def process_screener_data(app, markets, quote_currency):
                 score += 1
             if volatility >= app.volatility_threshold:
                 # print(f"Volatility({volatility} is above {app.volatility_threshold}")
+                score += 1
+            if rsi <= 30 and rsi > 20:
+                score += 1
+            if stoch_d > 20 and stoch_d <= 30:
+                score += 1
+            if stoch_k >= stoch_d:
+                score += 1
+            if williams_r <= -30:
                 score += 1
             if score >= 10:
                 relavent_ta = {}
@@ -162,9 +177,13 @@ def process_screener_data(app, markets, quote_currency):
                 relavent_ta['macd.signal'] = macd_signal
                 relavent_ta['bollinger_upper'] = bollinger_upper
                 relavent_ta['bollinger_lower'] = bollinger_lower
-                relavent_ta['rating'] = recommend
+                relavent_ta['rsi'] = rsi
+                relavent_ta['stoch_d'] = stoch_d
+                relavent_ta['stoch_k'] = stoch_k
+                relavent_ta['williamsR'] = williams_r
+                relavent_ta['rating'] = rating
                 try:
-                    relavent_ta['buy_next'] = 'SEND IT!' if re.search('.*BUY', recommend).group() else False
+                    relavent_ta['buy_next'] = 'SEND IT!' if re.search('BUY', rating) else False
                 except AttributeError:
                     relavent_ta['buy_next'] = False
                 formatted_ta.append(relavent_ta)
@@ -173,8 +192,8 @@ def process_screener_data(app, markets, quote_currency):
     if formatted_ta:
         # Stick it in a DF for the bots
         df_markets = pd.DataFrame(formatted_ta)
-        df_markets = df_markets[["market", "volume", "volatility", "adx", "adx+di", "adx-di", "macd", "macd.signal", "bollinger_upper", "bollinger_lower", "rating", "buy_next"]]
-        df_markets.columns = ["market", "volume", "volatility", "adx", "adx+di", "adx-di", "macd", "macd.signal", "bollinger_upper", "bollinger_lower", "rating", "buy_next"]
+        df_markets = df_markets[["market", "volume", "volatility", "adx", "adx+di", "adx-di", "macd", "macd.signal", "bollinger_upper", "bollinger_lower", "rsi", "stoch_d", "stoch_k", "williamsR", "rating", "buy_next"]]
+        df_markets.columns = ["market", "volume", "volatility", "adx", "adx+di", "adx-di", "macd", "macd.signal", "bollinger_upper", "bollinger_lower", "rsi", "stoch_d", "stoch_k", "williamsR", "rating", "buy_next"]
         df_markets["volume"] = df_markets["volume"].astype(float).round(0).astype(int)
         df_markets["volatility"] = df_markets["volatility"].astype(float)
         df_markets["adx"] = df_markets["adx"].astype(float)
@@ -184,6 +203,10 @@ def process_screener_data(app, markets, quote_currency):
         df_markets["macd.signal"] = df_markets["macd.signal"].astype(float)
         df_markets["bollinger_upper"] = df_markets["bollinger_upper"].astype(float)
         df_markets["bollinger_lower"] = df_markets["bollinger_lower"].astype(float)
+        df_markets['rsi'] = df_markets['rsi'].astype(float)
+        df_markets['stoch_d'] = df_markets['stoch_d'].astype(float)
+        df_markets['stoch_k'] = df_markets['stoch_k'].astype(float)
+        df_markets['williamsR'] = df_markets['williamsR'].astype(float)
         df_markets.sort_values(by=["market"], ascending=True, inplace=True)
         df_markets.set_index("market", inplace=True)
 
