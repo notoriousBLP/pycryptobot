@@ -867,9 +867,12 @@ class TelegramBot(TelegramBotBase):
         query = update.callback_query
 
         pbot = self.config[query.data]
-        pbot.delete('api_key')
-        pbot.delete('api_secret')
-        pbot.delete('api_passphrase')
+        try:
+            pbot.delete('api_key')
+            pbot.delete('api_secret')
+            pbot.delete('api_passphrase')
+        except Exception as e:
+            pass
 
         query.edit_message_text(query.data + "\n" + json.dumps(pbot, indent=4))
 

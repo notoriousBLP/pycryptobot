@@ -141,7 +141,7 @@ def process_screener_data(app, markets, quote_currency):
             if recommend > 0.5:
                 score += 5
                 rating = 'STRONG_BUY'
-            if ((adx >= app.adx_threshold) or (adx_posi_di > adx_neg_di)) and (adx_posi_di > adx):
+            if (adx >= app.adx_threshold) and (adx_posi_di > adx_neg_di) and (adx_posi_di > adx):
                 # print(f"ADX({adx}) >= {app.adx_threshold}")
                 score += 1 
             if volume >= app.volume_threshold:
@@ -157,7 +157,7 @@ def process_screener_data(app, markets, quote_currency):
                 score += 1
             if stoch_d > 20 and stoch_d <= 30:
                 score += 1
-            if stoch_k >= stoch_d:
+            if stoch_k > stoch_d:
                 score += 1
             if williams_r <= -30:
                 score += 1
