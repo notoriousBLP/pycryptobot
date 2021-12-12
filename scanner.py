@@ -135,7 +135,7 @@ def process_screener_data(app, markets, quote_currency):
             score = 0
             # print('symbol\tvolume\tvvolatilith\tadx\tadx_posi_di\tadx_neg_di\tmacd\tmacd_signal\tbollinger_upper\tbollinger_lower\trecommend')
             # print(ta.symbol, volume, volatility, adx, adx_posi_di, adx_neg_di, macd, macd_signal, bollinger_upper, bollinger_lower, recommend)
-            if recommend <= 0.5 and recommend > 0.1:
+            if 0.5 >= recommend > 0.1:
                 score += 2.5
                 rating = 'BUY'
             if recommend > 0.5:
@@ -153,9 +153,9 @@ def process_screener_data(app, markets, quote_currency):
             if volatility >= app.volatility_threshold:
                 # print(f"Volatility({volatility} is above {app.volatility_threshold}")
                 score += 1
-            if rsi <= 30 and rsi > 20:
+            if 30 >= rsi > 20:
                 score += 1
-            if stoch_d > 20 and stoch_d <= 30:
+            if 20 < stoch_d <= 30:
                 score += 1
             if stoch_k > stoch_d:
                 score += 1
@@ -188,7 +188,7 @@ def process_screener_data(app, markets, quote_currency):
                     relavent_ta['buy_next'] = False
                 formatted_ta.append(relavent_ta)
         except Exception as e:
-            continue
+            pass
     if formatted_ta:
         # Stick it in a DF for the bots
         df_markets = pd.DataFrame(formatted_ta)
